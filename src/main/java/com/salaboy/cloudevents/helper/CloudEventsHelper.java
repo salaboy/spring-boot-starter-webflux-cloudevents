@@ -17,6 +17,7 @@ public class CloudEventsHelper {
     public static final String CE_SOURCE = "Ce-Source";
     public static final String CE_SPECVERSION = "Ce-Specversion";
     public static final String CE_TIME = "Ce-Time";
+    public static final String CE_SUBJECT = "Ce-Subject";
 
     public static final String APPLICATION_JSON = "application/json";
     public static final String CONTENT_TYPE = "Content-Type";
@@ -33,6 +34,7 @@ public class CloudEventsHelper {
                 .withSource((headers.get(CE_SOURCE) != null) ? URI.create(headers.get(CE_SOURCE)) : null)
                 .withTime((headers.get(CE_TIME) != null) ? ZonedDateTime.parse(headers.get(CE_TIME)) : null)
                 .withData((body != null) ? body.toString() : "")
+                .withSubject(headers.get(CE_SUBJECT))
                 .withDatacontenttype((headers.get(CONTENT_TYPE) != null) ? headers.get(CONTENT_TYPE) : APPLICATION_JSON)
                 .build();
     }
@@ -51,7 +53,8 @@ public class CloudEventsHelper {
                 .header(CONTENT_TYPE, APPLICATION_JSON)
                 .header(CE_TYPE, attributes.getType())
                 .header(CE_TIME, (attributes.getTime().isPresent()) ? attributes.getTime().get().toString() : "")
-                .header(CE_SOURCE, (attributes.getSource() != null) ? attributes.getSource().toString() : "");
+                .header(CE_SOURCE, (attributes.getSource() != null) ? attributes.getSource().toString() : "")
+                .header(CE_SUBJECT, (attributes.getSubject() != null) ? attributes.getSubject().get() : "");
 
         return header.retrieve();
     }

@@ -66,6 +66,10 @@ public class CloudEventsHelper {
                 .header(CE_SOURCE, (attributes.getSource() != null) ? attributes.getSource().toString() : "")
                 .header(CE_SUBJECT, (attributes.getSubject() != null) ? attributes.getSubject().get() : "");
 
+        //@TODO: improve extensions handling, at least now we will have a string version of the extension
+        for(String key : cloudEvent.getExtensions().keySet()) {
+            header.header(key, cloudEvent.getExtensions().get(key).toString());
+        }
         return header.retrieve();
     }
 

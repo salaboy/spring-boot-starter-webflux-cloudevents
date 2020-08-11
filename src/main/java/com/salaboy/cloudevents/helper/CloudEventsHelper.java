@@ -1,9 +1,9 @@
 package com.salaboy.cloudevents.helper;
 
 import io.cloudevents.CloudEvent;
-import io.cloudevents.extensions.ExtensionFormat;
-import io.cloudevents.v03.AttributesImpl;
-import io.cloudevents.v03.CloudEventBuilder;
+import io.cloudevents.Extension;
+import io.cloudevents.core.builder.CloudEventBuilder;
+import org.springframework.util.SerializationUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -24,51 +24,51 @@ public class CloudEventsHelper {
     public static final String CONTENT_TYPE = "Content-Type";
 
 
-    public static CloudEvent<AttributesImpl, String> parseFromRequest(Map<String, String> headers, Object body) throws IllegalStateException {
+    public static CloudEvent parseFromRequest(Map<String, String> headers, Object body) throws IllegalStateException {
         return parseFromRequestWithExtension(headers, body, null);
     }
 
 
-    public static CloudEvent<AttributesImpl, String> parseFromRequestWithExtension(Map<String, String> headers, Object body, ExtensionFormat ef){
+    public static CloudEvent parseFromRequestWithExtension(Map<String, String> headers, Object body, Extension extension){
         if (headers.get(CE_ID) == null || (headers.get(CE_SOURCE) == null || headers.get(CE_TYPE) == null)) {
             throw new IllegalStateException("Cloud Event required fields are not present.");
         }
 
-        CloudEventBuilder<String> builder = CloudEventBuilder.<String>builder()
+        CloudEventBuilder builder = CloudEventBuilder.v03()
                 .withId(headers.get(CE_ID))
                 .withType(headers.get(CE_TYPE))
                 .withSource((headers.get(CE_SOURCE) != null) ? URI.create(headers.get(CE_SOURCE)) : null)
                 .withTime((headers.get(CE_TIME) != null) ? ZonedDateTime.parse(headers.get(CE_TIME)) : null)
-                .withData((body != null) ? body.toString() : "")
+                .withData(SerializationUtils.serialize(body))
                 .withSubject(headers.get(CE_SUBJECT))
-                .withDatacontenttype((headers.get(CONTENT_TYPE) != null) ? headers.get(CONTENT_TYPE) : APPLICATION_JSON);
+                .withDataContentType((headers.get(CONTENT_TYPE) != null) ? headers.get(CONTENT_TYPE) : APPLICATION_JSON);
 
-        if(ef != null){
-            builder = builder.withExtension(ef);
+        if (extension != null) {
+            builder = builder.withExtension(extension);
         }
-        return  builder.build();
+        return builder.build();
     }
 
-    public static WebClient.ResponseSpec createPostCloudEvent(WebClient webClient, CloudEvent<AttributesImpl, String> cloudEvent) {
+    public static WebClient.ResponseSpec createPostCloudEvent(WebClient webClient, CloudEvent cloudEvent) {
         return createPostCloudEvent(webClient,"", cloudEvent);
     }
 
-    public static WebClient.ResponseSpec createPostCloudEvent(WebClient webClient, String uriString, CloudEvent<AttributesImpl, String> cloudEvent) {
+    public static WebClient.ResponseSpec createPostCloudEvent(WebClient webClient, String uriString, CloudEvent cloudEvent) {
         WebClient.RequestBodySpec uri = webClient.post().uri(uriString);
         WebClient.RequestHeadersSpec<?> headersSpec = uri.body(BodyInserters.fromValue(cloudEvent.getData()));
-        AttributesImpl attributes = cloudEvent.getAttributes();
         WebClient.RequestHeadersSpec<?> header = headersSpec
-                .header(CE_ID, attributes.getId())
-                .header(CE_SPECVERSION, attributes.getSpecversion())
+                .header(CE_ID, cloudEvent.getId())
+                .header(CE_SPECVERSION, cloudEvent.getSpecVersion().name())
                 .header(CONTENT_TYPE, APPLICATION_JSON)
-                .header(CE_TYPE, attributes.getType())
-                .header(CE_TIME, (attributes.getTime().isPresent()) ? attributes.getTime().get().toString() : "")
-                .header(CE_SOURCE, (attributes.getSource() != null) ? attributes.getSource().toString() : "")
-                .header(CE_SUBJECT, (attributes.getSubject() != null) ? attributes.getSubject().get() : "");
+                .header(CE_TYPE, cloudEvent.getType())
+                .header(CE_TIME, cloudEvent.getTime().toString())
+                .header(CE_SOURCE, cloudEvent.getSource().toString())
+                .header(CE_SUBJECT, cloudEvent.getSubject());
+
 
         //@TODO: improve extensions handling, at least now we will have a string version of the extension
-        for(String key : cloudEvent.getExtensions().keySet()) {
-            header.header(key, cloudEvent.getExtensions().get(key).toString());
+        for (String key : cloudEvent.getExtensionNames()) {
+            header.header(key, cloudEvent.getExtension(key).toString());
         }
         return header.retrieve();
     }

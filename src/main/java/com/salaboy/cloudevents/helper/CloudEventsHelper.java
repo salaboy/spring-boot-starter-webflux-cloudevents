@@ -39,7 +39,7 @@ public class CloudEventsHelper {
                 .withType(headers.get(CE_TYPE))
                 .withSource((headers.get(CE_SOURCE) != null) ? URI.create(headers.get(CE_SOURCE)) : null)
                 .withTime((headers.get(CE_TIME) != null) ? ZonedDateTime.parse(headers.get(CE_TIME)) : null)
-                .withData(SerializationUtils.serialize(body))
+                .withData(headers.get(CONTENT_TYPE), body.toString().getBytes())
                 .withSubject(headers.get(CE_SUBJECT))
                 .withDataContentType((headers.get(CONTENT_TYPE) != null) ? headers.get(CONTENT_TYPE) : APPLICATION_JSON);
 

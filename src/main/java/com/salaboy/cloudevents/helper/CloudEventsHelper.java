@@ -1,15 +1,16 @@
 package com.salaboy.cloudevents.helper;
 
 import io.cloudevents.CloudEvent;
+
+
 import io.cloudevents.Extension;
 import io.cloudevents.core.builder.CloudEventBuilder;
-import org.springframework.util.SerializationUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
-import java.util.Map;
 
 public class CloudEventsHelper {
 
@@ -24,24 +25,25 @@ public class CloudEventsHelper {
     public static final String CONTENT_TYPE = "Content-Type";
 
 
-    public static CloudEvent parseFromRequest(Map<String, String> headers, Object body) throws IllegalStateException {
+    public static CloudEvent parseFromRequest(HttpHeaders headers, Object body) throws IllegalStateException {
+
         return parseFromRequestWithExtension(headers, body, null);
     }
 
 
-    public static CloudEvent parseFromRequestWithExtension(Map<String, String> headers, Object body, Extension extension){
+    public static CloudEvent parseFromRequestWithExtension(HttpHeaders headers, Object body, Extension extension){
         if (headers.get(CE_ID) == null || (headers.get(CE_SOURCE) == null || headers.get(CE_TYPE) == null)) {
             throw new IllegalStateException("Cloud Event required fields are not present.");
         }
 
         CloudEventBuilder builder = CloudEventBuilder.v03()
-                .withId(headers.get(CE_ID))
-                .withType(headers.get(CE_TYPE))
-                .withSource((headers.get(CE_SOURCE) != null) ? URI.create(headers.get(CE_SOURCE)) : null)
-                .withTime((headers.get(CE_TIME) != null) ? ZonedDateTime.parse(headers.get(CE_TIME)) : null)
-                .withData(headers.get(CONTENT_TYPE), body.toString().getBytes())
-                .withSubject(headers.get(CE_SUBJECT))
-                .withDataContentType((headers.get(CONTENT_TYPE) != null) ? headers.get(CONTENT_TYPE) : APPLICATION_JSON);
+                .withId(headers.getFirst(CE_ID))
+                .withType(headers.getFirst(CE_TYPE))
+                .withSource((headers.getFirst(CE_SOURCE) != null) ? URI.create(headers.getFirst(CE_SOURCE)) : null)
+                .withTime((headers.getFirst(CE_TIME) != null) ? ZonedDateTime.parse(headers.getFirst(CE_TIME)) : null)
+                .withData(headers.getFirst(CONTENT_TYPE), body.toString().getBytes())
+                .withSubject(headers.getFirst(CE_SUBJECT))
+                .withDataContentType((headers.getFirst(CONTENT_TYPE) != null) ? headers.getFirst(CONTENT_TYPE) : APPLICATION_JSON);
 
         if (extension != null) {
             builder = builder.withExtension(extension);
@@ -73,10 +75,5 @@ public class CloudEventsHelper {
         return header.retrieve();
     }
 
-
-
-
-
-    //@TODO: create a print CLOUD EVENT helper
 
 }

@@ -36,7 +36,7 @@ public class CloudEventsHelper {
             throw new IllegalStateException("Cloud Event required fields are not present.");
         }
 
-        CloudEventBuilder builder = CloudEventBuilder.v03()
+        CloudEventBuilder builder = CloudEventBuilder.v1()
                 .withId(headers.getFirst(CE_ID))
                 .withType(headers.getFirst(CE_TYPE))
                 .withSource((headers.getFirst(CE_SOURCE) != null) ? URI.create(headers.getFirst(CE_SOURCE)) : null)

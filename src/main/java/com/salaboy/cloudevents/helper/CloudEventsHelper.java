@@ -57,7 +57,7 @@ public class CloudEventsHelper {
 
     public static WebClient.ResponseSpec createPostCloudEvent(WebClient webClient, String uriString, CloudEvent cloudEvent) {
         WebClient.RequestBodySpec uri = webClient.post().uri(uriString);
-        WebClient.RequestHeadersSpec<?> headersSpec = uri.body(BodyInserters.fromValue(cloudEvent.getData()));
+        WebClient.RequestHeadersSpec<?> headersSpec = uri.body(BodyInserters.fromValue(new String(cloudEvent.getData())));
         WebClient.RequestHeadersSpec<?> header = headersSpec
                 .header(CE_ID, cloudEvent.getId())
                 .header(CE_SPECVERSION, cloudEvent.getSpecVersion().name())

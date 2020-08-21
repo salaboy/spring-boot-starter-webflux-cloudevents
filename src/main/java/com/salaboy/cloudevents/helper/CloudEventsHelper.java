@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
@@ -64,7 +65,7 @@ public class CloudEventsHelper {
                 .header(CE_SPECVERSION, cloudEvent.getSpecVersion().toString())
                 .header(CONTENT_TYPE, APPLICATION_JSON)
                 .header(CE_TYPE, cloudEvent.getType())
-                .header(CE_TIME, (cloudEvent.getTime() != null)?cloudEvent.getTime().toString():new Date().toString())
+                .header(CE_TIME, (cloudEvent.getTime() != null)?cloudEvent.getTime().toString(): OffsetDateTime.now().toZonedDateTime().toString())
                 .header(CE_SOURCE, (cloudEvent.getSource() != null)?cloudEvent.getSource().toString():"")
                 .header(CE_SUBJECT, cloudEvent.getSubject());
 

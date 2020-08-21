@@ -61,7 +61,7 @@ public class CloudEventsHelper {
         WebClient.RequestHeadersSpec<?> headersSpec = uri.body(BodyInserters.fromValue(new String(cloudEvent.getData())));
         WebClient.RequestHeadersSpec<?> header = headersSpec
                 .header(CE_ID, cloudEvent.getId())
-                .header(CE_SPECVERSION, cloudEvent.getSpecVersion().name())
+                .header(CE_SPECVERSION, cloudEvent.getSpecVersion().toString())
                 .header(CONTENT_TYPE, APPLICATION_JSON)
                 .header(CE_TYPE, cloudEvent.getType())
                 .header(CE_TIME, (cloudEvent.getTime() != null)?cloudEvent.getTime().toString():new Date().toString())
